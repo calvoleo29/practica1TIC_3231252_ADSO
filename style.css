@@ -1,18 +1,30 @@
 body {
   font-family: Arial, Helvetica, sans-serif;
+  margin: 20px;
 }
 
-.board {
+#board {
   display: flex;
   flex-direction: column;
+  background-color: red;
+  width: fit-content;
+  margin-top: 15px;
 }
+
 .row {
   display: flex;
 }
+
 .cell {
   width: 100px;
   height: 100px;
   border: solid 1px black;
   font-size: 38px;
   font-weight: bold;
+  cursor: pointer;
+  background-color: white;
+}
+
+.cell:hover {
+  background-color: #f0f0f0;
 }

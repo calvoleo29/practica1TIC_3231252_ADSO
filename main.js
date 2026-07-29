@@ -12,55 +12,51 @@ let pcSolutions = [];
 let board = [
   ["", "", ""],
   ["", "", ""],
-  ["", "", ""],
+  ["", "", ""]
 ];
 
-let turn = 0; //0 user, 1 = pc
+let currentTurn = "O"; 
+let isGameActive = true;
 
 function renderBoard() {
-  const html = board.map((row) => {
-    const cells = row.map((cell) => {
-      return `<button class="cell">${cell}</button>`;
+  const boardContainer = document.querySelector("#board");
+  
+  const html = board.map((row, rowIndex) => {
+    const cells = row.map((cell, colIndex) => {
+      return `<button class="cell" data-row="${rowIndex}" data-col="${colIndex}">${cell}</button>`;
     });
     return `<div class="row">${cells.join("")}</div>`;
   });
 
-  document.querySelector("#board").innerHTML = html.join("");
+  boardContainer.innerHTML = html.join("");
+}
+
+function renderPlayer() {
+  const playerDisplay = document.querySelector("#player");
+  playerDisplay.textContent = `Turno actual: ${currentTurn === "O" ? "Jugador (O)" : "PC (X)"}`;
 }
 
 startGame();
 
 function startGame() {
   renderBoard();
-  turn = Math.random() <= 0.5 ? 0 : 1;
+  currentTurn = Math.random() <= 0.5 ? "O" : "X";
   renderPlayer();
 
-  if (turn === 0) {
+  if (currentTurn === "O") {
     playerPlays();
   } else {
     PCPlaysV2();
   }
 }
 
-function renderPlayer() {
-  document.querySelector("#player").textContent = `${
-    turn === 0 ? "Player turn" : "PC turn"
-  }`;
-}
-
-function PCPlays() {
-  console.log("PC Plays... ");
-}
-
 function PCPlaysV2() {
-  debugger;
-  console.log("PC Plays...V2 ");
-  //create three
+  if (!isGameActive) return;
+  console.log("PC Plays...V2");
+  
   const copy = JSON.parse(JSON.stringify(board));
   const root = new Node(copy);
   processNode(root, true, 0);
-
-  console.log("final", root);
 
   if (pcSolutions.length > 0) {
     let min = 100;
@@ -70,16 +66,16 @@ function PCPlaysV2() {
       }
     }
     pcSolutions = pcSolutions.filter((sol) => sol.level === min);
-    const moveIndex = parseInt(Math.random() * (pcSolutions.length - 0) + 0);
-    console.log({ pcSolutions, moveIndex });
+    const moveIndex = parseInt(Math.random() * pcSolutions.length);
     const move = getRoot(pcSolutions[moveIndex]);
-    console.log({ move });
+    
     decisionThree = move;
     board = JSON.parse(JSON.stringify(move.value));
-    console.log({ board });
-    turn = 0;
+    
+    currentTurn = "O";
     renderBoard();
     renderPlayer();
+    
     const won = checkIfWinner();
     if (won === "none") {
       pcSolutions = [];
@@ -91,24 +87,27 @@ function PCPlaysV2() {
 }
 
 function processNode(root, nturn, level) {
-  for (let i = 0; i < board.length; i++) {
-    for (let j = 0; j < board[i].length; j++) {
+  if (level >= 9) return;
+
+  for (let i = 0; i < root.value.length; i++) {
+    for (let j = 0; j < root.value[i].length; j++) {
       if (root.value[i][j] === "") {
         root.children.push(createChild(root, i, j, nturn, level));
       }
     }
   }
-  //check if winner cpu
+
   for (let i = 0; i < root.children.length; i++) {
     if (checkIfPCWinner(root.children[i].value)) {
       pcSolutions.push(root.children[i]);
     }
   }
 
-  //process next level
   for (let i = 0; i < root.children.length; i++) {
     const item = root.children[i];
-    processNode(item, !nturn, level + 1);
+    if (!checkIfPCWinner(item.value)) {
+      processNode(item, !nturn, level + 1);
+    }
   }
 }
 
@@ -128,23 +127,21 @@ function createChild(node, i, j, nturn, level) {
 }
 
 function playerPlays() {
-  console.log("player plays");
+  document.querySelectorAll(".cell").forEach((buttonCell) => {
+    buttonCell.addEventListener("click", () => {
+      const row = parseInt(buttonCell.getAttribute("data-row"));
+      const column = parseInt(buttonCell.getAttribute("data-col"));
 
-  document.querySelectorAll(".cell").forEach((buttonCell, i) => {
-    const row = i % 3;
-    const column = parseInt(i / 3);
-    if (board[column][row] === "") {
-      buttonCell.addEventListener("click", (e) => {
-        board[column][row] = "O";
-        buttonCell.textContent = board[column][row];
-        turn = 1;
+      if (board[row][column] === "" && isGameActive) {
+        board[row][column] = "O";
+        buttonCell.textContent = "O";
+        
         const won = checkIfWinner();
-        debugger;
         if (won === "none") {
           PCPlaysV2();
         }
-      });
-    }
+      }
+    });
   });
 }
 
@@ -180,6 +177,7 @@ function checkIfWinner() {
   }
   return "none";
 }
+
 function checkIfPCWinner(arr) {
   const PCWon = [
     arr[0][0] === "X" && arr[1][1] === "X" && arr[2][2] === "X",
@@ -210,9 +208,8 @@ function checkIfPlayerCanWin(arr) {
 
 function getRoot(node) {
   let n = node;
-  while (n.parent.parent != null) {
+  while (n.parent && n.parent.parent != null) {
     n = n.parent;
   }
-
   return n;
 }
