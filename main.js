@@ -52,11 +52,12 @@ function startGame() {
 
 function PCPlaysV2() {
   if (!isGameActive) return;
-  console.log("PC Plays...V2");
   
   const copy = JSON.parse(JSON.stringify(board));
   const root = new Node(copy);
   processNode(root, true, 0);
+
+  let move = null;
 
   if (pcSolutions.length > 0) {
     let min = 100;
@@ -67,8 +68,15 @@ function PCPlaysV2() {
     }
     pcSolutions = pcSolutions.filter((sol) => sol.level === min);
     const moveIndex = parseInt(Math.random() * pcSolutions.length);
-    const move = getRoot(pcSolutions[moveIndex]);
-    
+    move = getRoot(pcSolutions[moveIndex]);
+  } else {
+    if (root.children.length > 0) {
+      const moveIndex = parseInt(Math.random() * root.children.length);
+      move = root.children[moveIndex];
+    }
+  }
+
+  if (move) {
     decisionThree = move;
     board = JSON.parse(JSON.stringify(move.value));
     
@@ -81,8 +89,6 @@ function PCPlaysV2() {
       pcSolutions = [];
       playerPlays();
     }
-  } else {
-    console.log("Empate...");
   }
 }
 
@@ -168,14 +174,13 @@ function checkIfWinner() {
   ];
 
   if (PCWon.includes(true)) {
-    console.log("PC WON");
+    isGameActive = false;
     return "pcwon";
   }
   if (playerWon.includes(true)) {
-    console.log("Player WON");
+    isGameActive = false;
     return "playerwon";
   }
-  return "none";
 }
 
 function checkIfPCWinner(arr) {
