@@ -36,6 +36,8 @@ function renderPlayer() {
   playerDisplay.textContent = `Turno actual: ${currentTurn === "O" ? "Jugador (O)" : "PC (X)"}`;
 }
 
+document.querySelector("#restart").addEventListener("click", resetGame);
+
 startGame();
 
 function startGame() {
@@ -48,6 +50,18 @@ function startGame() {
   } else {
     PCPlaysV2();
   }
+}
+
+function resetGame() {
+  board = [
+    ["", "", ""],
+    ["", "", ""],
+    ["", "", ""]
+  ];
+  pcSolutions = [];
+  decisionThree = null;
+  isGameActive = true;
+  startGame();
 }
 
 function PCPlaysV2() {
