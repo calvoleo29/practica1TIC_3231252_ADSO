@@ -82,10 +82,10 @@ function PCPlaysV2() {
     
     currentTurn = "O";
     renderBoard();
-    renderPlayer();
     
     const won = checkIfWinner();
     if (won === "none") {
+      renderPlayer();
       pcSolutions = [];
       playerPlays();
     }
@@ -175,12 +175,23 @@ function checkIfWinner() {
 
   if (PCWon.includes(true)) {
     isGameActive = false;
+    document.querySelector("#player").textContent = "¡Ganó la PC (X)!";
     return "pcwon";
   }
   if (playerWon.includes(true)) {
     isGameActive = false;
+    document.querySelector("#player").textContent = "¡Ganaste (O)!";
     return "playerwon";
   }
+
+  const isDraw = board.every((row) => row.every((cell) => cell !== ""));
+  if (isDraw) {
+    isGameActive = false;
+    document.querySelector("#player").textContent = "¡Empate!";
+    return "draw";
+  }
+
+  return "none";
 }
 
 function checkIfPCWinner(arr) {
